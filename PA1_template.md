@@ -280,6 +280,6 @@ xyplot(intervalmean ~ interval | daytype, data = mnStepsIntDay, layout = c(1,2),
 
 ![plot of chunk unnamed-chunk-19](figure/unnamed-chunk-19.png) 
 
-We can see that on weekdays, the activity peaks at around 8:35 days. There are three more peaks activity times as the day progresses. Also, the subject is more active early in the morning compared to the weekends. 
+We can see that on weekdays, the activity peaks at around 8:35 AM. There are three more peaks activity times as the day progresses. Also, the subject is more active early in the morning compared to the weekends. 
 
 During the weekends, the subject is relatively more active. The activity is more evenly distributed across the day.
