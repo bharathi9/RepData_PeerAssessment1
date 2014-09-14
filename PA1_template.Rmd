@@ -1,12 +1,17 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---    
 
 This is a simple analysis of the activity data collected by a subject during the months of October and November 2012. The data collected is the number of steps taken in 5 minute intervals each day.
 
-The data is available [here](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip)
+The data is available [here](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip).
 
 The variables included in this dataset are:
 
-- **steps**: Number of steps taking in a 5-minute interval (missing values are coded as NA)
+- **steps**: Number of steps taken in a 5-minute interval (missing values are coded as NA)
 
 - **date**: The date on which the measurement was taken in YYYY-MM-DD format
 
@@ -35,31 +40,38 @@ The format of the data is as required for the initial analysis.
 head(activity)
 ```
 
-Also, a sample of the data is shown above.
+Also, a sample of the data is shown above. 
+
+```{r}
+head(activity$interval,30)
+tail(activity$interval,30)
+```
+
+The 5 minute intervals are coded such that, 0 is the first 5 minute inteval that starts at 12:00 AM. 5 is the start of the next 5 minute interval at 12:05 AM, 10 starts at 12:10 AM, and so on till 55 is for the interval at 12:55 AM. The next interval 100 is the 5 minute interval that starts at 1:00 AM, 105 for 1:05 AM and so on till 155 is for 1:55 AM and 200 is for 2:00 AM. And so on till 2355, to represent the interval at 23:55 PM (11:55 PM).
 
 ## What is mean total number of steps taken per day?
 
 Shown below is the histogram of the total number of steps taken for each day.
 
-```{r}
+```{r MeanTotalSteps, fig.align='center'}
 library(plyr)
 totStepsDay<- ddply(activity,.(date),summarize,daytotal = sum(steps))
 with(totStepsDay,hist(daytotal,xlab="Total steps per day",main="Histogram of Total number of steps taken each day"))
 ```
 
 ```{r}
-with(totStepsDay,summary(daytotal))
+mean(totStepsDay$daytotal,na.rm = TRUE)
+median(totStepsDay$daytotal,na.rm = TRUE)
 ```
 
-Ignoring the missing values, the mean of the total number of steps taken per day is 10770 steps. The median of the total number of steps taken per day is 10760.
+Ignoring the missing values, the mean of the total number of steps taken per day is `r as.integer(mean(totStepsDay$daytotal, na.rm = TRUE))` steps. The median of the total number of steps taken per day is `r median(totStepsDay$daytotal,na.rm = TRUE)`.
 
-**Note**: My analysis in R gave the numbers in the text (different from above).
 
 ## What is the average daily activity pattern?
 
 Shown below is the histogram of mean of the total steps taken during each 5 minute interval across all the days.
 
-```{r}
+```{r AvgDailyActivityPattern, fig.align='center'}
 mnStepsInt <- ddply(activity,.(interval),summarize,intervalmean = mean(steps,na.rm=TRUE))
 ##dim(mnStepsInt)
 ##head(mnStepsInt)
@@ -94,7 +106,7 @@ nadata <- activity[which(is.na(activity)),]
 table(nadata$date)
 ```
 
-The 288 for each day is the same as the total number of 5 minute intervals in a 24 hour period.
+The 288 for each day is the same as the total number of 5 minute intervals in a 24 hour period. A good fill in for these missing values would be the average number of steps taken during each 5 minute interval across all days. For intervals where most of the days there are no steps (early in the morning and late at night), formatting the average of the steps as integer makes it zero. So that the number of steps taken during that interval reflects the more frequent data for that interval, which is zero. 
 
 ```{r}
 naindices <- which(is.na(activity))
@@ -104,16 +116,16 @@ for(i in 1:length(naindices)){noNAactivity$steps[naindices[i]] <- as.integer(mnS
 sum(is.na(noNAactivity))
 ```
 
-The noNAactivity copy of the original data has no missing values.
+Using the strategy above, the noNAactivity copy of the original data is created to have no missing values.
 
-```{r}
+```{r NoMissingData, fig.width= 8, fig.align='center'}
 noNAtotStepsDay <- ddply(noNAactivity,.(date),summarize,daytotal = sum(steps))
 with(noNAtotStepsDay,hist(daytotal,xlab="Total steps per day",main="Histogram of Total number of steps taken each day with no missing data"))
 ```
 
 The histogram above shows mean of the total steps taken during each 5 minute interval across all the days with no missing data.
 
-```{r}
+```{r Comparison, fig.align='center'}
 par(mfrow=c(1,2))
 with(totStepsDay,hist(daytotal,xlab="Total steps per day",main="Original data"))
 with(noNAtotStepsDay,hist(daytotal,xlab="Total steps per day",main="With no missing data"))
@@ -121,15 +133,18 @@ with(noNAtotStepsDay,hist(daytotal,xlab="Total steps per day",main="With no miss
 
 The new histogram shows the increased counts because of imputing the missing values. 
 
-Mean (10770) and median (10760) with missing data.
+With data missing for eight days, the mean is `r as.integer(mean(totStepsDay$daytotal, na.rm = TRUE))` and the median is `r median(totStepsDay$daytotal, na.rm = TRUE)`. 
 
 ```{r}
-summary(totStepsDay$daytotal)
+mean(totStepsDay$daytotal, na.rm = TRUE)
+median(totStepsDay$daytotal, na.rm = TRUE)
 ```
 
-Mean (10750) and median (10640) with no missing data.
+With no missing data, the mean is `r as.integer(mean(noNAtotStepsDay$daytotal))` and the median is `r median(noNAtotStepsDay$daytotal)`. 
+
 ```{r}
-summary(noNAtotStepsDay$daytotal)
+mean(noNAtotStepsDay$daytotal)
+median(noNAtotStepsDay$daytotal)
 ```
 
 Imputing the missing values decreases the mean and median values.
@@ -163,7 +178,7 @@ str(noNAactivity)
 
 The figure below shows the average number of steps taken for each 5 minute interval across weekdays and weekends.
 
-```{r}
+```{r WeekdayWeekend, fig.width=8, fig.align='center'}
 mnStepsIntDay <- ddply(noNAactivity,.(interval,daytype),summarize,intervalmean = mean(steps))
 ##dim(mnStepsIntDay)
 ##head(mnStepsIntDay)
@@ -171,6 +186,6 @@ library(lattice)
 xyplot(intervalmean ~ interval | daytype, data = mnStepsIntDay, layout = c(1,2),type = 'l',xlab = "Interval",ylab = "Mean of steps taken",main = "Average number of steps for each interval across weekdays and weekends")
 ```
 
-We can see that on weekdays, the activity peaks at around 8:35 AM. There are three more peaks activity times as the day progresses. Also, the subject is more active early in the morning compared to the weekends. 
+We can see that on weekdays, the activity peaks at around 8:35 AM. There are three more peak activity times as the day progresses. Also, the subject is more active early in the morning compared to the weekends. 
 
 During the weekends, the subject is relatively more active. The activity is more evenly distributed across the day.
